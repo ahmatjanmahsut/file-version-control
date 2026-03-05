@@ -22,7 +22,7 @@
 ### 1. 从GitHub克隆代码
 
 ```bash
-git clone https://github.com/yourusername/file-version-control.git
+git clone https://github.com/Ahmatjan-IT/file-version-control.git
 cd file-version-control
 ```
 

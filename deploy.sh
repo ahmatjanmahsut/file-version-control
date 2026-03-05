@@ -24,7 +24,7 @@ DB_USER="filecontrol"
 DB_PASSWORD="filecontrol123"
 JWT_SECRET="file_version_control_secret"
 PORT=8000
-GITHUB_REPO="https://github.com/yourusername/file-version-control.git"
+GITHUB_REPO="https://github.com/ahmatjanmahsut/file-version-control.git"
 
 # 安装必要的依赖
 echo "安装必要的依赖..."
@@ -33,15 +33,31 @@ apt install -y curl wget gnupg2 apt-transport-https lsb-release ca-certificates
 
 # 安装Node.js
 echo "安装Node.js..."
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+# 使用NodeSource的正确URL格式
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 
 # 安装SQL Server
 echo "安装SQL Server..."
-curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/prod.list > /etc/apt/sources.list.d/mssql-release.list
+# 使用新的方法添加Microsoft GPG密钥
+curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-archive-keyring.gpg
+
+# 添加SQL Server仓库
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/debian/$(lsb_release -rs)/prod $(lsb_release -cs) main" > /etc/apt/sources.list.d/mssql-release.list
+
+# 更新包列表
 apt update
-ACCEPT_EULA=Y apt install -y msodbcsql18 mssql-tools18
+
+# 安装SQL Server服务器和工具
+echo "安装SQL Server服务器..."
+ACCEPT_EULA=Y apt install -y mssql-server mssql-tools18 unixodbc-dev
+
+# 配置SQL Server
+echo "配置SQL Server..."
+/opt/mssql/bin/mssql-conf set-sa-password "YourStrong!Passw0rd"
+/opt/mssql/bin/mssql-conf set sqlagent.enabled true
+systemctl enable mssql-server
+systemctl start mssql-server
 
 # 安装Git
 echo "安装Git..."
@@ -85,13 +101,9 @@ PORT=$PORT
 JWT_SECRET=$JWT_SECRET
 EOF
 
-# 配置SQL Server
-echo "配置SQL Server..."
-systemctl start mssql-server
-systemctl enable mssql-server
-
 # 等待SQL Server启动
-sleep 10
+echo "等待SQL Server启动..."
+sleep 15
 
 # 配置数据库
 echo "配置数据库..."
@@ -127,8 +139,12 @@ systemctl enable file-version-control
 
 # 配置防火墙
 echo "配置防火墙..."
-ufw allow 8000/tcp
-ufw allow 3000/tcp
+if command -v ufw &> /dev/null; then
+    ufw allow 8000/tcp
+    ufw allow 3000/tcp
+else
+    echo "ufw未安装，跳过防火墙配置"
+fi
 
 # 创建控制面板
 echo "创建控制面板..."
@@ -240,4 +256,5 @@ echo "后端地址: http://$(hostname -I | awk '{print $1}'):8000"
 echo "控制面板: $APP_DIR/control.sh"
 echo ""
 echo "默认管理员账号: admin / admin123"
+echo "SQL Server sa密码: YourStrong!Passw0rd"
 echo "========================================"
