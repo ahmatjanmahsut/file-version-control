@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { Layout, Menu, Button, message } from 'antd'
-import { UploadOutlined, UserOutlined, LogoutOutlined, FileTextOutlined, HomeOutlined } from '@ant-design/icons'
+import { UploadOutlined, LogoutOutlined, FileTextOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import FileList from './pages/FileList'
@@ -26,6 +26,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('user')
+    localStorage.removeItem('token')
     setCurrentUser(null)
     setIsAdmin(false)
     message.success('退出登录成功')
@@ -41,50 +42,67 @@ function App() {
     return children
   }
 
+  const menuItems = [
+    {
+      key: 'files',
+      icon: <FileTextOutlined />,
+      label: <Link to="/files">文件列表</Link>
+    },
+    ...(isAdmin ? [{
+      key: 'upload',
+      icon: <UploadOutlined />,
+      label: <Link to="/upload">上传文件</Link>
+    }] : [])
+  ]
+
   return (
     <Router>
       <Layout style={{ minHeight: '100vh' }}>
         {currentUser && (
-          <Sider width={200} style={{ background: '#fff' }}>
-            <div className="logo" style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 'bold' }}>
+          <Sider width={220} style={{ background: '#001529' }}>
+            <div className="logo" style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 'bold', color: '#fff' }}>
               工艺文件系统
             </div>
             <Menu
+              theme="dark"
               mode="inline"
               defaultSelectedKeys={['files']}
-              style={{ height: '100%', borderRight: 0 }}
-            >
-              <Menu.Item key="files" icon={<FileTextOutlined />}>
-                文件列表
-              </Menu.Item>
-              {isAdmin && (
-                <Menu.Item key="upload" icon={<UploadOutlined />}>
-                  上传文件
-                </Menu.Item>
-              )}
-            </Menu>
+              items={menuItems}
+              style={{ background: '#001529' }}
+            />
           </Sider>
         )}
         <Layout className="site-layout">
-          <Header className="site-layout-background" style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Header className="site-layout-background" style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}>
             {currentUser ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <span>欢迎, {currentUser.username}</span>
+                <span style={{ fontWeight: 'bold' }}>欢迎, {currentUser.username}</span>
+                {isAdmin && (
+                  <span style={{ color: '#1890ff', fontSize: 12, padding: '2px 8px', background: '#e6f7ff', borderRadius: 4 }}>管理员</span>
+                )}
                 <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
                   退出登录
                 </Button>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 16 }}>
-                <Button type="primary">登录</Button>
-                <Button>注册</Button>
+                <Link to="/login">
+                  <Button type="primary">登录</Button>
+                </Link>
+                <Link to="/register">
+                  <Button>注册</Button>
+                </Link>
               </div>
             )}
           </Header>
           <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>
             <Routes>
-              <Route path="/login" element={<Login setCurrentUser={setCurrentUser} setIsAdmin={setIsAdmin} />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={
+                currentUser ? <Navigate to="/files" /> : <Login setCurrentUser={setCurrentUser} setIsAdmin={setIsAdmin} />
+              } />
+              <Route path="/register" element={
+                currentUser ? <Navigate to="/files" /> : <Register />
+              } />
               <Route path="/files" element={
                 <PrivateRoute>
                   <FileList isAdmin={isAdmin} />
@@ -97,7 +115,7 @@ function App() {
               } />
               <Route path="/upload" element={
                 <PrivateRoute adminRequired>
-                  <FileUpload />
+                  <FileUpload onUploadSuccess={() => {}} />
                 </PrivateRoute>
               } />
               <Route path="/" element={<Navigate to={currentUser ? "/files" : "/login"} />} />

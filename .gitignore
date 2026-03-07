@@ -10,6 +10,7 @@ uploads/
 # 构建产物
 dist/
 build/
+output/
 
 # 日志文件
 *.log

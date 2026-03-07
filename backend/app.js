@@ -3,6 +3,7 @@ const cors = require('cors')
 const config = require('./config')
 const db = require('./db')
 const authRoutes = require('./routes/auth')
+const adminRoutes = require('./routes/admin')
 const fileRoutes = require('./routes/files')
 
 const app = express()
@@ -14,15 +15,18 @@ app.use(express.urlencoded({ extended: true }))
 
 // 路由
 app.use('/api/auth', authRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/files', fileRoutes)
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
 
 // 启动服务器
 const startServer = async () => {
   try {
-    // 连接数据库
     await db.connect()
     
-    // 启动服务器
     app.listen(config.port, () => {
       console.log(`服务器运行在 http://localhost:${config.port}`)
     })

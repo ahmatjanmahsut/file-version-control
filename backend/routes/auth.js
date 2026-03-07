@@ -10,22 +10,18 @@ router.post('/register', async (req, res) => {
   const { username, email, password } = req.body
 
   try {
-    // 检查用户名是否已存在
     const usernameCheck = await db.query('SELECT * FROM Users WHERE username = @param1', [username])
     if (usernameCheck.recordset.length > 0) {
       return res.status(400).json({ message: '用户名已存在' })
     }
 
-    // 检查邮箱是否已存在
     const emailCheck = await db.query('SELECT * FROM Users WHERE email = @param1', [email])
     if (emailCheck.recordset.length > 0) {
       return res.status(400).json({ message: '邮箱已被注册' })
     }
 
-    // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // 创建用户
     await db.query(
       'INSERT INTO Users (username, email, password) VALUES (@param1, @param2, @param3)',
       [username, email, hashedPassword]
@@ -43,7 +39,6 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body
 
   try {
-    // 查找用户
     const result = await db.query('SELECT * FROM Users WHERE username = @param1', [username])
     if (result.recordset.length === 0) {
       return res.status(401).json({ message: '用户名或密码错误' })
@@ -51,13 +46,11 @@ router.post('/login', async (req, res) => {
 
     const user = result.recordset[0]
 
-    // 验证密码
     const passwordMatch = await bcrypt.compare(password, user.password)
     if (!passwordMatch) {
       return res.status(401).json({ message: '用户名或密码错误' })
     }
 
-    // 生成JWT令牌
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       config.jwt.secret,
