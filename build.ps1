@@ -19,7 +19,7 @@ if (Test-Path $OutputDir) {
 }
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 
-Write-Host "`n[1/5] Checking Node.js..." -ForegroundColor Yellow
+Write-Host "`n[1/4] Checking Node.js..." -ForegroundColor Yellow
 
 $nodeVersion = & node --version 2>$null
 if (-not $nodeVersion) {
@@ -29,28 +29,22 @@ if (-not $nodeVersion) {
 Write-Host "Node.js version: $nodeVersion"
 
 if (-not $SkipNpmInstall) {
-    Write-Host "`n[2/5] Installing frontend dependencies..." -ForegroundColor Yellow
+    Write-Host "`n[2/4] Installing frontend dependencies..." -ForegroundColor Yellow
     Set-Location (Join-Path $ScriptDir "frontend")
     & npm install
     if ($LASTEXITCODE -ne 0) { throw "Frontend install failed" }
-
-    Write-Host "`n[3/5] Installing backend dependencies..." -ForegroundColor Yellow
-    Set-Location (Join-Path $ScriptDir "backend")
-    & npm install
-    if ($LASTEXITCODE -ne 0) { throw "Backend install failed" }
-
-    Write-Host "`n[4/5] Installing client dependencies..." -ForegroundColor Yellow
-    Set-Location (Join-Path $ScriptDir "client")
-    & npm install
-    if ($LASTEXITCODE -ne 0) { throw "Client install failed" }
 }
 
-Write-Host "`n[5/5] Building frontend..." -ForegroundColor Yellow
+Write-Host "`nNote: Backend and Client need manual install:" -ForegroundColor Yellow
+Write-Host "  - cd backend && npm install" -ForegroundColor Yellow
+Write-Host "  - cd client && npm install" -ForegroundColor Yellow
+
+Write-Host "`n[4/4] Building frontend..." -ForegroundColor Yellow
 Set-Location (Join-Path $ScriptDir "frontend")
 & npm run build
 if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
 
-$FrontendDist = Join-Path $ScriptDir "frontend" "dist"
+$FrontendDist = Join-Path (Join-Path $ScriptDir "frontend") "dist"
 if (Test-Path $FrontendDist) {
     $WebDir = Join-Path $OutputDir "web"
     Copy-Item -Path $FrontendDist -Destination $WebDir -Recurse -Force
@@ -80,8 +74,8 @@ Write-Host "`nContents:" -ForegroundColor White
 Write-Host "  - web/: Frontend web files" -ForegroundColor Gray
 Write-Host "  - backend/: Backend service" -ForegroundColor Gray
 Write-Host "  - client/: Desktop client" -ForegroundColor Gray
-Write-Host "`nUsage:" -ForegroundColor White
-Write-Host "  1. Backend: cd backend" -ForegroundColor Gray
-Write-Host "  2. Client: cd client" -ForegroundColor Gray
-Write-Host "  3. Frontend: http://localhost:3000" -ForegroundColor Gray
+Write-Host "`nNext steps:" -ForegroundColor White
+Write-Host "  1. cd backend && npm install (install backend deps)" -ForegroundColor Gray
+Write-Host "  2. cd backend && npm start (start backend)" -ForegroundColor Gray
+Write-Host "  3. cd client && npm start (start desktop client)" -ForegroundColor Gray
 Write-Host "========================================" -ForegroundColor Cyan
