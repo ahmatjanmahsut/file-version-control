@@ -1,5 +1,4 @@
-# 工艺文件版本控制系统构建脚本
-# 自动编译前端、后端和客户端程序
+# File Version Control System Build Script
 
 param(
     [switch]$SkipNpmInstall
@@ -8,89 +7,81 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "工艺文件版本控制系统构建脚本" -ForegroundColor Cyan
+Write-Host "File Version Control System Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
-# 获取脚本所在目录
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ScriptDir
 
-# 定义输出目录
 $OutputDir = Join-Path $ScriptDir "output"
 if (Test-Path $OutputDir) {
     Remove-Item $OutputDir -Recurse -Force
 }
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 
-Write-Host "`n[1/5] 检查并安装Node.js..." -ForegroundColor Yellow
+Write-Host "`n[1/5] Checking Node.js..." -ForegroundColor Yellow
 
-# 检查Node.js
 $nodeVersion = & node --version 2>$null
 if (-not $nodeVersion) {
-    Write-Host "错误: 未安装Node.js，请先安装Node.js 18或更高版本" -ForegroundColor Red
+    Write-Host "Error: Node.js not installed" -ForegroundColor Red
     exit 1
 }
-Write-Host "Node.js版本: $nodeVersion"
+Write-Host "Node.js version: $nodeVersion"
 
-# 安装依赖
 if (-not $SkipNpmInstall) {
-    Write-Host "`n[2/5] 安装前端依赖..." -ForegroundColor Yellow
+    Write-Host "`n[2/5] Installing frontend dependencies..." -ForegroundColor Yellow
     Set-Location (Join-Path $ScriptDir "frontend")
     & npm install
-    if ($LASTEXITCODE -ne 0) { throw "前端依赖安装失败" }
+    if ($LASTEXITCODE -ne 0) { throw "Frontend install failed" }
 
-    Write-Host "`n[3/5] 安装后端依赖..." -ForegroundColor Yellow
+    Write-Host "`n[3/5] Installing backend dependencies..." -ForegroundColor Yellow
     Set-Location (Join-Path $ScriptDir "backend")
-    & npm install --production
-    if ($LASTEXITCODE -ne 0) { throw "后端依赖安装失败" }
+    & npm install
+    if ($LASTEXITCODE -ne 0) { throw "Backend install failed" }
 
-    Write-Host "`n[4/5] 安装客户端依赖..." -ForegroundColor Yellow
+    Write-Host "`n[4/5] Installing client dependencies..." -ForegroundColor Yellow
     Set-Location (Join-Path $ScriptDir "client")
     & npm install
-    if ($LASTEXITCODE -ne 0) { throw "客户端依赖安装失败" }
+    if ($LASTEXITCODE -ne 0) { throw "Client install failed" }
 }
 
-# 构建前端
-Write-Host "`n[5/5] 构建前端..." -ForegroundColor Yellow
+Write-Host "`n[5/5] Building frontend..." -ForegroundColor Yellow
 Set-Location (Join-Path $ScriptDir "frontend")
 & npm run build
-if ($LASTEXITCODE -ne 0) { throw "前端构建失败" }
+if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
 
-# 复制前端构建产物到输出目录
-$FrontendDist = Join-Path $ScriptDir "frontend\dist"
+$FrontendDist = Join-Path $ScriptDir "frontend" "dist"
 if (Test-Path $FrontendDist) {
-    Copy-Item -Path $FrontendDist -Destination (Join-Path $OutputDir "web") -Recurse -Force
-    Write-Host "前端构建产物已复制到: $OutputDir\web" -ForegroundColor Green
+    $WebDir = Join-Path $OutputDir "web"
+    Copy-Item -Path $FrontendDist -Destination $WebDir -Recurse -Force
+    Write-Host "Frontend built to: $WebDir" -ForegroundColor Green
 }
 
-# 复制后端到输出目录
-Write-Host "`n复制后端到输出目录..." -ForegroundColor Yellow
+Write-Host "`nCopying backend to output..." -ForegroundColor Yellow
 $BackendDir = Join-Path $ScriptDir "backend"
 $OutputBackendDir = Join-Path $OutputDir "backend"
 Copy-Item -Path $BackendDir -Destination $OutputBackendDir -Recurse -Force -Exclude "node_modules"
 
-# 复制客户端到输出目录
-Write-Host "`n复制客户端到输出目录..." -ForegroundColor Yellow
+Write-Host "`nCopying client to output..." -ForegroundColor Yellow
 $ClientDir = Join-Path $ScriptDir "client"
 $OutputClientDir = Join-Path $OutputDir "client"
 Copy-Item -Path $ClientDir -Destination $OutputClientDir -Recurse -Force -Exclude "node_modules","dist"
 
-# 复制配置文件
-Copy-Item -Path (Join-Path $ScriptDir "README.md") -Destination $OutputDir -Force
+$ReadmePath = Join-Path $ScriptDir "README.md"
+Copy-Item -Path $ReadmePath -Destination $OutputDir -Force
 
-# 返回主目录
 Set-Location $ScriptDir
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "构建完成！" -ForegroundColor Green
+Write-Host "Build completed!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "`n输出目录: $OutputDir" -ForegroundColor White
-Write-Host "`n包含内容:" -ForegroundColor White
-Write-Host "  - web/: 前端Web页面 (复制到Web服务器)" -ForegroundColor Gray
-Write-Host "  - backend/: 后端服务程序" -ForegroundColor Gray
-Write-Host "  - client/: 桌面管理客户端" -ForegroundColor Gray
-Write-Host "`n运行说明:" -ForegroundColor White
-Write-Host "  1. 后端: cd backend && npm start" -ForegroundColor Gray
-Write-Host "  2. 客户端: cd client && npm start" -ForegroundColor Gray
-Write-Host "  3. 前端访问: http://localhost:3000" -ForegroundColor Gray
+Write-Host "`nOutput directory: $OutputDir" -ForegroundColor White
+Write-Host "`nContents:" -ForegroundColor White
+Write-Host "  - web/: Frontend web files" -ForegroundColor Gray
+Write-Host "  - backend/: Backend service" -ForegroundColor Gray
+Write-Host "  - client/: Desktop client" -ForegroundColor Gray
+Write-Host "`nUsage:" -ForegroundColor White
+Write-Host "  1. Backend: cd backend" -ForegroundColor Gray
+Write-Host "  2. Client: cd client" -ForegroundColor Gray
+Write-Host "  3. Frontend: http://localhost:3000" -ForegroundColor Gray
 Write-Host "========================================" -ForegroundColor Cyan

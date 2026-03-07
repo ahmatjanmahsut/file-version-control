@@ -194,7 +194,7 @@ const FileList: React.FC<FileListProps> = ({ isAdmin }) => {
             {
               title: '操作',
               key: 'action',
-              render: (_: any, record: any) => (
+              render: () => (
                 <Space size="middle">
                   <Button icon={<DownloadOutlined />}>下载</Button>
                   <Button icon={<EyeOutlined />}>预览</Button>

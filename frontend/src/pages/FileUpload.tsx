@@ -1,26 +1,27 @@
-import React, { useState } from 'react'
-import { Upload, Button, message, Typography, Form, Input, Select } from 'antd'
+import React from 'react'
+import { Upload, Button, message, Typography, Form } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 const { Title } = Typography
-const { Option } = Select
 const { Dragger } = Upload
 
-const FileUpload: React.FC = () => {
-  const [loading, setLoading] = useState(false)
-  const [fileList, setFileList] = useState<any[]>([])
+interface FileUploadProps {
+  onUploadSuccess?: () => void
+}
+
+const FileUpload: React.FC<FileUploadProps> = () => {
+  const [fileList, setFileList] = React.useState<any[]>([])
   const [form] = Form.useForm()
   const navigate = useNavigate()
 
   const handleUpload = async (file: any) => {
-    setLoading(true)
     const formData = new FormData()
     formData.append('file', file)
     
     try {
-      const response = await axios.post('/api/files/upload', formData, {
+      await axios.post('/api/files/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -30,8 +31,6 @@ const FileUpload: React.FC = () => {
       form.resetFields()
     } catch (error) {
       message.error('文件上传失败')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -51,10 +50,9 @@ const FileUpload: React.FC = () => {
         message.error(`${info.file.name} 文件上传失败`)
       }
     },
-    customRequest: ({ file, onSuccess, onError }) => {
+    beforeUpload: (file: any) => {
       handleUpload(file)
-        .then(() => onSuccess())
-        .catch(() => onError(new Error('上传失败')))
+      return false
     }
   }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { Layout, Menu, Button, message } from 'antd'
-import { UploadOutlined, LogoutOutlined, FileTextOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons'
+import { UploadOutlined, LogoutOutlined, FileTextOutlined } from '@ant-design/icons'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import FileList from './pages/FileList'
