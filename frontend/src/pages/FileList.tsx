@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Table, Button, Input, message, Space, Modal, Popconfirm } from 'antd'
 import { SearchOutlined, DownloadOutlined, EyeOutlined, DeleteOutlined, EditOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../api'
 
 interface FileListProps {
   isAdmin: boolean
@@ -31,7 +31,7 @@ const FileList: React.FC<FileListProps> = ({ isAdmin }) => {
   const fetchFiles = async () => {
     setLoading(true)
     try {
-      const response = await axios.get('/api/files')
+      const response = await api.get('/files')
       setFiles(response.data)
     } catch (error) {
       message.error('获取文件列表失败')
@@ -50,7 +50,7 @@ const FileList: React.FC<FileListProps> = ({ isAdmin }) => {
 
   const handleDownload = async (file: File) => {
     try {
-      const response = await axios.get(`/api/files/${file.id}/download`, { responseType: 'blob' })
+      const response = await api.get(`/files/${file.id}/download`, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
@@ -65,7 +65,7 @@ const FileList: React.FC<FileListProps> = ({ isAdmin }) => {
 
   const handleDelete = async (fileId: number) => {
     try {
-      await axios.delete(`/api/files/${fileId}`)
+      await api.delete(`/files/${fileId}`)
       message.success('删除文件成功')
       fetchFiles()
     } catch (error) {
@@ -76,7 +76,7 @@ const FileList: React.FC<FileListProps> = ({ isAdmin }) => {
   const handleViewVersions = async (file: File) => {
     setSelectedFile(file)
     try {
-      const response = await axios.get(`/api/files/${file.id}/versions`)
+      const response = await api.get(`/files/${file.id}/versions`)
       setVersions(response.data)
       setVersionModalVisible(true)
     } catch (error) {

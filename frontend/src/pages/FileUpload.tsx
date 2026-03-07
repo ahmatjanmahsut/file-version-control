@@ -2,7 +2,7 @@ import React from 'react'
 import { Upload, Button, message, Typography, Form } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../api'
 
 const { Title } = Typography
 const { Dragger } = Upload
@@ -21,7 +21,7 @@ const FileUpload: React.FC<FileUploadProps> = () => {
     formData.append('file', file)
     
     try {
-      await axios.post('/api/files/upload', formData, {
+      await api.post('/files/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button, message, Typography, Space, Select } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
-import axios from 'axios'
+import api from '../api'
 
 const { Title } = Typography
 const { Option } = Select
@@ -33,7 +33,7 @@ const FilePreview: React.FC = () => {
   const fetchFileDetails = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(`/api/files/${id}`)
+      const response = await api.get(`/files/${id}`)
       setFile(response.data)
     } catch (error) {
       message.error('获取文件详情失败')
@@ -44,7 +44,7 @@ const FilePreview: React.FC = () => {
 
   const fetchVersions = async () => {
     try {
-      const response = await axios.get(`/api/files/${id}/versions`)
+      const response = await api.get(`/files/${id}/versions`)
       setVersions(response.data)
       if (response.data.length > 0) {
         setSelectedVersion(response.data[0].version)
@@ -57,7 +57,7 @@ const FilePreview: React.FC = () => {
   const handleVersionChange = async (version: number) => {
     setSelectedVersion(version)
     try {
-      const response = await axios.get(`/api/files/${id}/preview?version=${version}`, { responseType: 'blob' })
+      const response = await api.get(`/files/${id}/preview?version=${version}`, { responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([response.data]))
       setPreviewUrl(url)
     } catch (error) {

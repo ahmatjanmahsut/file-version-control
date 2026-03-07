@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Form, Input, Button, message, Typography, Card, Space } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../api'
 
 const { Title } = Typography
 
@@ -13,7 +13,7 @@ const Register: React.FC = () => {
   const onFinish = async (values: any) => {
     setLoading(true)
     try {
-      await axios.post('/api/auth/register', values)
+      await api.post('/auth/register', values)
       message.success('注册成功，请登录')
       navigate('/login')
     } catch (error: any) {
